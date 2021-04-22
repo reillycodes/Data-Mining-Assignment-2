@@ -3,8 +3,6 @@
 animals,1/9/19647db2fbfa143081c02de245d66ab40c2d18e3
 ?
 CA2data/veggies,c/9/c95db59285b9932ee1150f05134e17bdbfd9275d
-<
-ca2-tudor.py,f/3/f35408957d37fbd81aac211288e70135d91575f8
 7
 test.py,a/3/a36e355ddb203d7d4133221f339dc406cb9f480f
 6
@@ -12,3 +10,19 @@
 :
 
 classKM.py,d/6/d626f0e5992df6b892b848fa725b552f29088a7f
+?
+CA2data/animals,e/8/e891b058909b0053b1f53c81fc8ca64043b4e466
+A
+CA2data/countries,6/0/60bd6592a28cd689fd492040da3dd8b8b02deaa0
+9
+	countries,1/1/11ef521f70854107a328afbaa22be36d09084b25
+>
+CA2data/fruits,2/a/2a2be85f70532c7019b5e594624c77e7c2a21b57
+6
+fruits,1/9/1910e93064bf1ebffb72e5ba67678a2acff098e6
+^
+..idea/inspectionProfiles/profiles_settings.xml,1/e/1e9075f5bf079c01ef2c910709e91a497d262080
+\
+,.idea/inspectionProfiles/Project_Default.xml,4/9/496a238a6afa168dbaf6efd37bb459331589579c
+7
+veggies,5/4/54187e4c0fcf3b7e5f1e028c999167c10fb7c32d

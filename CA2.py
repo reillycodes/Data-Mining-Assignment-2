@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 import bcubed
 import classKM
-
+import matplotlib.pyplot as plt
 
 
 def load_data(fname):
@@ -37,48 +37,60 @@ veggies = load_data('CA2data/veggies')
 data = np.vstack((animals, countries))
 data = np.vstack((data,fruits))
 data = np.vstack((data,veggies))
-print(data.shape)
-model = classKM.KMeans(k=4)
-model.fit(data)
-# print(model.labels)
 
-model2 = classKM.KMedians(k=3)
-model2.fit(data)
+global_precision = []
+global_recall = []
+global_fscore = []
+for i in range(1,10):
 
+    model = classKM.KMeans(k=i)
+    model.fit(data)
+    # print(model.labels)
 
-cluster_data = deepcopy(data)
-cluster_data = np.column_stack((cluster_data,model.labels))
-print(cluster_data.shape)
-lbls = np.unique(cluster_data[:,[-2]])
-
-precision_score = []
-recall_score = []
-fscore_score = []
-for i in range(4):
-    c = []
-    for j in range(len(cluster_data)):
-        if cluster_data[j][-1] == i:
-            c.append(cluster_data[j])
-    c = np.array(c)
-    for lbl in lbls:
-        target = np.count_nonzero(np.where(c[:,[-2]]==lbl))
-        for q in range(target):
-            precision = target / len(c)
-            precision_score.append(precision)
-            recall = target / np.count_nonzero(np.where(cluster_data[:, -2] == lbl))
-            recall_score.append(recall)
-            fscore = 2 * precision * recall / (precision + recall)
-            fscore_score.append(fscore)
-
-pp = float(np.mean(precision_score))
-
-rr =float(np.mean(recall_score))
-
-ff = float((np.mean(fscore_score)))
-
-print('%.3f' %pp)
-print('%.3f' %rr)
-print('%.3f' %ff)
+    # model2 = classKM.KMedians(k=i)
+    # model2.fit(data)
 
 
-# K is currently 4
+    cluster_data = deepcopy(data)
+    cluster_data = np.column_stack((cluster_data,model.labels))
+
+    lbls = np.unique(cluster_data[:,[-2]])
+
+    precision_score = []
+    recall_score = []
+    fscore_score = []
+    for i in range(model.k):
+        c = []
+        for j in range(len(cluster_data)):
+            if cluster_data[j][-1] == i:
+                c.append(cluster_data[j])
+        c = np.array(c)
+        for lbl in lbls:
+            target = np.count_nonzero(np.where(c[:,[-2]]==lbl))
+            for q in range(target):
+                precision = target / len(c)
+                precision_score.append(precision)
+                recall = target / np.count_nonzero(np.where(cluster_data[:, -2] == lbl))
+                recall_score.append(recall)
+                fscore = 2 * precision * recall / (precision + recall)
+                fscore_score.append(fscore)
+
+    global_precision.append(np.mean(precision_score))
+
+    global_recall.append(np.mean(recall_score))
+
+    global_fscore.append((np.mean(fscore_score)))
+
+
+
+plt.plot([k for k in range(1,10)],global_precision, label = 'Precision')
+plt.plot([k for k in range(1,10)], global_recall, label = 'Recall')
+plt.plot([k for k in range(1,10)], global_fscore, label = 'F-Score')
+plt.legend()
+plt.xlabel('K')
+plt.ylabel('BCubed Score')
+plt.title('KMeans')
+plt.tight_layout()
+plt.show()
+
+print(global_precision)
