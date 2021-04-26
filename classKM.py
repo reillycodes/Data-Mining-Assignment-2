@@ -1,5 +1,5 @@
 import numpy as np
-from copy import deepcopy
+
 
 class KMeans():
     def __init__(self, k, seed=42):
@@ -13,6 +13,7 @@ class KMeans():
 
     def gen_random_points(self,data):
 
+
         min_data = np.min(data, axis=0)
         max_data = np.max(data, axis=0)
         random_points = np.random.uniform(low=min_data, high=max_data)
@@ -25,6 +26,7 @@ class KMeans():
         return np.linalg.norm(x - y)
 
     def fit(self,data):
+
         np.random.seed(self.seed)
         self.centroids = np.zeros((self.k, data.shape[1]))
         self.centroids = np.delete(self.centroids, -1, 1)
@@ -40,7 +42,9 @@ class KMeans():
         for i in range(len(self.convergance)):
             self.convergance[i] = self.distance(self.centroids[i], self.old_centroids[i])
 
-        test_data = np.delete(data, -1, 1)
+        test_data = np.copy(data)
+        test_data = np.delete(test_data, -1,1)
+
 
         while self.convergance.any() != 0:
             for i in range(len(data)):
@@ -49,7 +53,7 @@ class KMeans():
                 cluster = np.argmin(self.distances)
                 self.labels[i] = cluster
 
-            self.old_centroids = deepcopy(self.centroids)
+            self.old_centroids = np.copy(self.centroids)
 
             for i in range(self.k):
                 points = np.array([test_data[j] for j in range(len(test_data)) if self.labels[j] == i])
@@ -109,7 +113,7 @@ class KMedians():
                 cluster = np.argmin(self.distances)
                 self.labels[i] = cluster
 
-            self.old_centroids = deepcopy(self.centroids)
+            self.old_centroids = np.copy(self.centroids)
 
             for i in range(self.k):
                 points = np.array([test_data[j] for j in range(len(test_data)) if self.labels[j] == i])
