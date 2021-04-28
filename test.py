@@ -125,12 +125,31 @@ from scipy.spatial import distance
 #     print(convergance)
 
 
-def manhattan_distance(x,y):
-    return np.sum(np.abs(x-y))
+# def manhattan_distance(x,y):
+#     return np.sum(np.abs(x-y))
+#
+# data = np.array([-3,4,5,6])
+# centroid = np.array([12,43,5,1])
+# print(np.abs(data))
+#
+# print(manhattan_distance(data,centroid))
+# print(distance.cityblock(data,centroid))
 
-data = np.array([-3,4,5,6])
-centroid = np.array([12,43,5,1])
-print(np.abs(data))
 
-print(manhattan_distance(data,centroid))
-print(distance.cityblock(data,centroid))
+# list = [50,3,5,1]
+#
+# for i in range(len(list)):
+#     for j in range(list[i]):
+#         print(j)
+
+print(np.random.uniform(-1,1))
+
+
+# data = np.vstack((animals, countries))
+# data = np.vstack((data,fruits))
+# data = np.vstack((data,veggies))
+# classes = np.copy(data[:,-1])
+# data = np.delete(data, np.s_[-1],1)
+# norm = np.copy(data)
+# norm = l2_norm(norm)
+# data = np.column_stack((data,classes))

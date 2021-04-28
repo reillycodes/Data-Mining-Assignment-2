@@ -1,8 +1,8 @@
 import numpy as np
-import classKM
 import matplotlib.pyplot as plt
+
 class KMeans():
-    def __init__(self, k, seed=7):
+    def __init__(self, k, seed=42):
         self.k = k
         self.seed = seed
         self.centroids = np.empty(self.k)
@@ -12,14 +12,9 @@ class KMeans():
         self.convergance = np.empty(self.k)
 
     def gen_random_points(self,data):
-
-
         min_data = np.min(data, axis=0)
         max_data = np.max(data, axis=0)
         random_points = np.random.uniform(low=min_data, high=max_data)
-        random_points = list(random_points)
-        del random_points[300]
-        random_points = np.array(random_points)
         return random_points
 
     def distance(self,x,y):
@@ -29,7 +24,6 @@ class KMeans():
 
         np.random.seed(self.seed)
         self.centroids = np.zeros((self.k, data.shape[1]))
-        self.centroids = np.delete(self.centroids, -1, 1)
 
         for i in range(self.k):
             self.centroids[i] = self.gen_random_points(data)
@@ -43,7 +37,6 @@ class KMeans():
             self.convergance[i] = self.distance(self.centroids[i], self.old_centroids[i])
 
         test_data = np.copy(data)
-        test_data = np.delete(test_data, -1,1)
 
 
         while self.convergance.any() != 0:
@@ -51,6 +44,7 @@ class KMeans():
                 for j in range(len(self.centroids)):
                     self.distances[j] = self.distance(test_data[i], self.centroids[j])
                 cluster = np.argmin(self.distances)
+
                 self.labels[i] = cluster
 
             self.old_centroids = np.copy(self.centroids)
@@ -79,9 +73,6 @@ class KMedians():
         min_data = np.min(data, axis=0)
         max_data = np.max(data, axis=0)
         random_points = np.random.uniform(low=min_data, high=max_data)
-        random_points = list(random_points)
-        del random_points[300]
-        random_points = np.array(random_points)
         return random_points
 
     def distance(self,x,y):
@@ -91,7 +82,6 @@ class KMedians():
     def fit(self,data):
         np.random.seed(self.seed)
         self.centroids = np.zeros((self.k, data.shape[1]))
-        self.centroids = np.delete(self.centroids, -1, 1)
 
         for i in range(self.k):
             self.centroids[i] = self.gen_random_points(data)
@@ -104,7 +94,7 @@ class KMedians():
         for i in range(len(self.convergance)):
             self.convergance[i] = self.distance(self.centroids[i], self.old_centroids[i])
 
-        test_data = np.delete(data, -1, 1)
+        test_data = np.copy(data)
 
         while self.convergance.any() != 0:
             for i in range(len(data)):
@@ -144,30 +134,31 @@ def load_data(fname):
         features = np.column_stack((features,[3]*features.shape[0]))
     return features
 
+# def l2_norm(data):
+#
+#     for i in data:
+#         x = np.linalg.norm(i)
+#         for j in range(0,len(i)):
+#             i[j] = i[j]/x
+#
+#     return data
 
 def l2_norm(data):
-    norm_vector = np.linalg.norm(data, axis=0)
 
-    normalised_data = data / norm_vector
-    return normalised_data
+    return data/(np.linalg.norm(data,axis=1,keepdims=True))
 
-
-def bscores(data, k, cluster_labels):
-
-    global_precision = []
-    global_recall = []
-    global_fscore = []
+def bscores(data, k, class_labels, cluster_labels):
 
     cluster_data = np.copy(data)
-
+    cluster_data = np.column_stack((cluster_data,class_labels))
     cluster_data = np.column_stack((cluster_data, cluster_labels))
-
 
     lbls = np.unique(cluster_data[:, [-2]])
 
     precision_score = []
     recall_score = []
     fscore_score = []
+
     for i in range(k):
         c = []
         for j in range(len(cluster_data)):
@@ -192,114 +183,112 @@ def bscores(data, k, cluster_labels):
                 fscore = 2 * precision * recall / (precision + recall)
                 fscore_score.append(fscore)
 
-    global_precision.append(np.mean(precision_score))
+    return [np.mean(precision_score), np.mean(recall_score), np.mean(fscore_score)]
 
-    global_recall.append(np.mean(recall_score))
+def make_data(data1,data2,data3,data4):
+    data = np.vstack((data1, data2))
+    data = np.vstack((data, data3))
+    data = np.vstack((data, data4))
+    classes = np.copy(data[:, -1])
+    data = np.delete(data, np.s_[-1], 1)
+    norm = np.copy(data)
+    norm = l2_norm(norm)
 
-    global_fscore.append((np.mean(fscore_score)))
-
-    return [global_precision, global_recall, global_fscore]
+    return data, classes, norm
 
 animals = load_data('CA2data/animals')
-
 countries = load_data('CA2data/countries')
-
 fruits = load_data('CA2data/fruits')
-
 veggies = load_data('CA2data/veggies')
 
+data, classes, norm = make_data(animals,countries,fruits,veggies)
 
-data = np.vstack((animals, countries))
-
-data = np.vstack((data,fruits))
-
-data = np.vstack((data,veggies))
-
-
-norm = np.copy(data)
-norm = l2_norm(norm)
-
-plot_precision = []
-plot_recall = []
-plot_fscore = []
-
-plot_norm_precision = []
-plot_norm_recall = []
-plot_norm_fscore = []
-
-
-
+plot_scores = [[],[],[]]
+plot_norm_scores = [[],[],[]]
+seed=42
 for i in range(1,10):
 
-    mean = KMeans(k=i)
+    mean = KMeans(k=i,seed=seed)
     mean.fit(data)
-    score = bscores(data,i,mean.labels)
-    plot_precision.append(score[0])
-    plot_recall.append(score[1])
-    plot_fscore.append(score[2])
+    score = bscores(data,i,classes,mean.labels)
+    # print('KMeans')
+    # print('K =',i, 'BCUBED scores:\n\nPrecision:',score[0],'\nRecall:',score[1],'\nFScore:',score[2],'\n')
+    plot_scores[0].append(score[0])
+    plot_scores[1].append(score[1])
+    plot_scores[2].append(score[2])
 
-    mean_norm = classKM.KMeans(k=i)
+for i in range(1,10):
+    mean_norm = KMeans(k=i)
     mean_norm.fit(norm)
-    norm_score = bscores(norm,i,mean_norm.labels)
-    plot_norm_precision.append(norm_score[0])
-    plot_norm_recall.append(norm_score[1])
-    plot_norm_fscore.append(norm_score[2])
+    norm_score = bscores(norm,i,classes, mean_norm.labels)
+    # print('KMeans Normalised')
+    # print('K =', i, 'BCUBED scores:\n\nPrecision:', score[0], '\nRecall:', score[1], '\nFScore:', score[2], '\n')
+    plot_norm_scores[0].append(norm_score[0])
+    plot_norm_scores[1].append(norm_score[1])
+    plot_norm_scores[2].append(norm_score[2])
 
 for i in range(1,10):
 
-    median = KMedians(k=i)
+    median = KMedians(k=i,seed=seed)
     median.fit(data)
-    score = bscores(data, i, median.labels)
-    plot_precision.append(score[0])
-    plot_recall.append(score[1])
-    plot_fscore.append(score[2])
+    score = bscores(data, i, classes,median.labels)
+    # print('Kmedians')
+    # print('K =',i, 'BCUBED scores:\n\nPrecision:',score[0],'\nRecall:',score[1],'\nFScore:',score[2],'\n')
+    plot_scores[0].append(score[0])
+    plot_scores[1].append(score[1])
+    plot_scores[2].append(score[2])
 
-    median_norm = classKM.KMedians(k=i)
+for i in range(1,10):
+    median_norm = KMedians(k=i)
     median_norm.fit(norm)
-    norm_score = bscores(norm,i,median_norm.labels)
-    plot_norm_precision.append(norm_score[0])
-    plot_norm_recall.append(norm_score[1])
-    plot_norm_fscore.append(norm_score[2])
+    norm_score = bscores(norm,i,classes,median_norm.labels)
+    # print('KMedians Normalised')
+    # print('K =',i, 'BCUBED scores:\n\nPrecision:',score[0],'\nRecall:',score[1],'\nFScore:',score[2],'\n')
+    plot_norm_scores[0].append(norm_score[0])
+    plot_norm_scores[1].append(norm_score[1])
+    plot_norm_scores[2].append(norm_score[2])
 
 
+plot_graphs = True
 
+if plot_graphs == True:
 
-plt.plot([k for k in range(1,10)],plot_precision[0:9], label = 'Precision')
-plt.plot([k for k in range(1,10)], plot_recall[0:9], label = 'Recall')
-plt.plot([k for k in range(1,10)], plot_fscore[0:9], label = 'F-Score')
-plt.legend()
-plt.xlabel('K')
-plt.ylabel('BCubed Score')
-plt.title('KMeans')
-plt.tight_layout()
-plt.show()
+    plt.plot([k for k in range(1,10)],plot_scores[0][0:9], label = 'Precision')
+    plt.plot([k for k in range(1,10)], plot_scores[1][0:9], label = 'Recall')
+    plt.plot([k for k in range(1,10)], plot_scores[2][0:9], label = 'F-Score')
+    plt.legend()
+    plt.xlabel('K')
+    plt.ylabel('BCubed Score')
+    plt.title('KMeans')
+    plt.tight_layout()
+    plt.show()
 
-plt.plot([k for k in range(1,10)],plot_precision[9:], label = 'Precision')
-plt.plot([k for k in range(1,10)], plot_recall[9:], label = 'Recall')
-plt.plot([k for k in range(1,10)], plot_fscore[9:], label = 'F-Score')
-plt.legend()
-plt.xlabel('K')
-plt.ylabel('BCubed Score')
-plt.title('KMedians')
-plt.tight_layout()
-plt.show()
+    plt.plot([k for k in range(1,10)],plot_scores[0][9:], label = 'Precision')
+    plt.plot([k for k in range(1,10)], plot_scores[1][9:], label = 'Recall')
+    plt.plot([k for k in range(1,10)], plot_scores[2][9:], label = 'F-Score')
+    plt.legend()
+    plt.xlabel('K')
+    plt.ylabel('BCubed Score')
+    plt.title('KMedians')
+    plt.tight_layout()
+    plt.show()
 
-plt.plot([k for k in range(1,10)],plot_norm_precision[0:9], label = 'Precision')
-plt.plot([k for k in range(1,10)], plot_norm_recall[0:9], label = 'Recall')
-plt.plot([k for k in range(1,10)], plot_norm_fscore[0:9], label = 'F-Score')
-plt.legend()
-plt.xlabel('K')
-plt.ylabel('BCubed Score')
-plt.title('KMeans - Normalised')
-plt.tight_layout()
-plt.show()
+    plt.plot([k for k in range(1,10)],plot_norm_scores[0][0:9], label = 'Precision')
+    plt.plot([k for k in range(1,10)], plot_norm_scores[1][0:9], label = 'Recall')
+    plt.plot([k for k in range(1,10)], plot_norm_scores[2][0:9], label = 'F-Score')
+    plt.legend()
+    plt.xlabel('K')
+    plt.ylabel('BCubed Score')
+    plt.title('KMeans - Normalised')
+    plt.tight_layout()
+    plt.show()
 
-plt.plot([k for k in range(1,10)],plot_norm_precision[9:], label = 'Precision')
-plt.plot([k for k in range(1,10)], plot_norm_recall[9:], label = 'Recall')
-plt.plot([k for k in range(1,10)], plot_norm_fscore[9:], label = 'F-Score')
-plt.legend()
-plt.xlabel('K')
-plt.ylabel('BCubed Score')
-plt.title('KMedians - Normalised')
-plt.tight_layout()
-plt.show()
+    plt.plot([k for k in range(1,10)],plot_norm_scores[0][9:], label = 'Precision')
+    plt.plot([k for k in range(1,10)], plot_norm_scores[1][9:], label = 'Recall')
+    plt.plot([k for k in range(1,10)], plot_norm_scores[2][9:], label = 'F-Score')
+    plt.legend()
+    plt.xlabel('K')
+    plt.ylabel('BCubed Score')
+    plt.title('KMedians - Normalised')
+    plt.tight_layout()
+    plt.show()
