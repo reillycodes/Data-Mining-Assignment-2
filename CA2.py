@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #KMeans Class
-class KMeans():
-    '''
+class KMeans:
+    """
     KMeans Clustering Algorithm
 
     Parameters
@@ -22,7 +22,7 @@ class KMeans():
         array to track currently assigned cluster of datapoint
     convergence: np.array
         used to check if convergence has been met
-    '''
+    """
     def __init__(self, k, seed=42):
         self.k = k
         self.seed = seed
@@ -259,24 +259,7 @@ def l2_norm(data):
     # Normalise each vector to unit length l2
     return data/(np.linalg.norm(data,axis=1,keepdims=True))
 
-'''
-BCUBED Function
-Used to work out BCUBED Precsion, Recall, FScore
-Parameters
-------------
-
-data: np.array
-    Dataset used for clustering
-k: int
-    number of clusters
-class_labels: np.array
-    Classification of datapoints from original data
-cluster_labels: np.array
-    Cluster each datapoint belongs to after running through algorithm
-    
-Returns:
-BCUBED Precision, Recall, F-Score for each model
-'''
+#BCUBED Scores function
 def bscores(data, k, class_labels, cluster_labels):
 
     # Data and labels merged into one dataset
@@ -329,16 +312,12 @@ data, classes, norm = make_data(animals,countries,fruits,veggies)
 plot_scores = [[],[],[]]
 plot_norm_scores = [[],[],[]]
 
-
-
-
-#Code used to run each model, uncomment if needed
 #KMeans
-for i in range(1,10):
+for i in range(1,10): #Runs the model with k = 1-9
 
-    mean = KMeans(k=i)
-    mean.fit(data)
-    score = bscores(data,i,classes,mean.labels)
+    mean = KMeans(k=i) #Create instance of model
+    mean.fit(data) # Cluster data using model
+    score = bscores(data,i,classes,mean.labels) #Get BCUBED Scores based off clustering
     print('KMeans')
     print('K =',i, 'BCUBED scores:\n\nPrecision:',score[0],'\nRecall:',score[1],'\nFScore:',score[2],'\n')
     plot_scores[0].append(score[0])
@@ -346,7 +325,7 @@ for i in range(1,10):
     plot_scores[2].append(score[2])
 
 #KMeans Normlaised
-for i in range(1,10):
+for i in range(1,10): #Runs the model with k = 1-9
     mean_norm = KMeans(k=i)
     mean_norm.fit(norm)
     norm_score = bscores(norm,i,classes, mean_norm.labels)
@@ -355,8 +334,9 @@ for i in range(1,10):
     plot_norm_scores[0].append(norm_score[0])
     plot_norm_scores[1].append(norm_score[1])
     plot_norm_scores[2].append(norm_score[2])
+
 #KMedians
-for i in range(1,10):
+for i in range(1,10): #Runs the model with k = 1-9
 
     median = KMedians(k=i)
     median.fit(data)
@@ -366,8 +346,9 @@ for i in range(1,10):
     plot_scores[0].append(score[0])
     plot_scores[1].append(score[1])
     plot_scores[2].append(score[2])
+
 #KMedians Normalised
-for i in range(1,10):
+for i in range(1,10): #Runs the model with k = 1-9
     median_norm = KMedians(k=i)
     median_norm.fit(norm)
     norm_score = bscores(norm,i,classes,median_norm.labels)
@@ -377,10 +358,7 @@ for i in range(1,10):
     plot_norm_scores[1].append(norm_score[1])
     plot_norm_scores[2].append(norm_score[2])
 
-
-
-# Code used to create charts, uncomment to run if needed
-
+#Graph Creation based off of model results
 plt.plot([k for k in range(1,10)],plot_scores[0][0:9], label = 'Precision')
 plt.plot([k for k in range(1,10)], plot_scores[1][0:9], label = 'Recall')
 plt.plot([k for k in range(1,10)], plot_scores[2][0:9], label = 'F-Score')
